@@ -14,14 +14,23 @@ const authSchema = new Schema({
     type: String,
     required: true,
   },
-  firstName: {
+  firstname: {
     type: String,
     required: true,
   },
-  lastName: {
+  lastname: {
     type: String,
     required: true,
   },
+  emailToken: {
+    type: String,
+  },
+  isVerified: {
+    type: Boolean,
+  },
+  isActive: {
+    type: Boolean,
+  }
 });
 
 const Auth = model("Auth", authSchema);

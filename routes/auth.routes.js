@@ -66,13 +66,13 @@ router.post("/signup", async (req, res, next) => {
       },
     });
 
-    const url = `http://localhost:8000/auth/signup/${token}`;
+    // const url = `http://localhost:8000/auth/signup/${token}`;
     try {
       await transporter.sendMail({
         from: `"Leftovers Team" <${process.env.NODEMAILER_ID}>`,
         to: newAuth.email,
         subject: "Important: verify your email to use leftovers app",
-        html: `<h3>Hello user!</h3> <div>Comer received a request to create an account for you.</div> <div>Before we proceed, we need you to verify the email address you provided.</div> <div>Click <a href='${url}'>here</a> to verify your email.</div> <div> </div> <div>Thank you,</div> <div>Leftovers</div>`,
+        html: `<h3>Hello ${firstname}!</h3> <div>Thank you for join us! Leftovers received a request to create an account for you.</div> <div>Before we proceed, we need you to verify the email address you provided.</div> <div>Input your verification code on this app.</div> <div> Verfication code: ${token}</div> <div>Thank you,</div> <div>Leftovers team</div>`,
       });
     } catch (error) {
       // If sending the email fails, remove the user data and return an error response
@@ -85,6 +85,7 @@ router.post("/signup", async (req, res, next) => {
     // If everything is successful, save the user data and send a success response.
     // In order to input the numbers from the client side, I use four digit numbers using crypto
     await newAuth.save();
+    console.log(newAuth);
 
     res.status(200).json({
       message:

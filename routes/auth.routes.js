@@ -7,7 +7,7 @@ const crypto = require("crypto");
 
 const router = express.Router();
 
-router.post("/signup", async (req, res, next) => {
+router.post("/signup", async (req, res) => {
   try {
     const { email, password, password2, firstname, lastname } = req.body;
 
@@ -41,7 +41,7 @@ router.post("/signup", async (req, res, next) => {
 
     // Generate an email token for email verification
     const token = generateRandom4DigitNumber();
-    console.log(token);
+    // console.log(token);
 
     // Create a new user
     const newAuth = new Auth({
@@ -85,19 +85,21 @@ router.post("/signup", async (req, res, next) => {
     // If everything is successful, save the user data and send a success response.
     // In order to input the numbers from the client side, I use four digit numbers using crypto
     await newAuth.save();
-    console.log(newAuth);
+    // console.log(newAuth);
 
     res.status(200).json({
       message:
         "Welcome to Leftovers! You successfully signed up! Please check your email inbox.",
     });
   } catch (error) {
-    next(error);
+    res.status(500).json({
+      error: "You could not successfully signup, please try it again!",
+    });
   }
 });
 
 // I chnaged from URL to enter emailToken because there is no URL on react native app.
-router.get("/verifyEmail/:token", async (req, res, next) => {
+router.get("/verifyEmail/:token", async (req, res) => {
   try {
     const emailToken = req.params.token;
 
@@ -117,12 +119,74 @@ router.get("/verifyEmail/:token", async (req, res, next) => {
     }
   } catch (error) {
     // Handle any errors that occur during the process
-    res.status(500).json("Server Error!");
+    res.status(500).json("Verfication was not updated successfully!");
   }
 });
 
-router.post("/login", async (req, res, next) => {});
-router.post("/logout", async (req, res, next) => {});
+router.post("/resendValidationCode/:email", async (req, res) => {
+  try {
+    const { email } = req.params; // Get the email from route params
+    console.log({ email });
+    // Find the user by email
+    // console.log("Before findOne:", email);
+    const user = await Auth.findOne({ email });
+    // console.log("After findOne:", user);
+    console.log(user);
+
+    if (!user) {
+      return res.status(404).json("User not found");
+    }
+
+    // Generate a new validation code
+    function generateRandom4DigitNumber() {
+      // Generate a random 4-digit number
+      const randomBytes = crypto.randomBytes(2); // 2 bytes = 16 bits
+      const randomNumber = randomBytes.readUInt16BE(0); // Read 16 bits as an unsigned integer
+      const fourDigitNumber = (randomNumber % 9000) + 1000; // Ensure it's 4 digits
+      return fourDigitNumber;
+    }
+
+    // Generate an email token for email verification
+    const token = generateRandom4DigitNumber();
+    // console.log(token); // Implement your code generation logic
+
+    // Send the new validation code to the user's email (you'll need to implement this part)
+    // You can use Nodemailer or an email service API like SendGrid or Mailgun to send emails.
+
+    // Update the user's data in the database
+    user.emailToken = token;
+    // user.isVerified = false; // Set isVerified to false since you're resending the code
+    await user.save();
+
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.NODEMAILER_ID,
+        pass: process.env.NODEMAILER_PASS,
+      },
+    });
+    try {
+      await transporter.sendMail({
+        from: `"Leftovers Team" <${process.env.NODEMAILER_ID}>`,
+        to: user.email,
+        subject: "Important: verify your email to use leftovers app",
+        html: `<h3>Hello ${user.firstname}!</h3> <div>Thank you for join us! Leftovers received a request to create an account for you.</div> <div>Before we proceed, we need you to verify the email address you provided.</div> <div>Input your verification code on this app.</div> <div> Verfication code: ${user.emailToken}</div> <div>Thank you,</div> <div>Leftovers team</div>`,
+      });
+    } catch (error) {
+      // If sending the email fails, remove the user data and return an error response
+      return res
+        .status(500)
+        .json("Failed to send email verification. Please try again later.");
+    }
+    res.status(200).json("Validation code resent successfully");
+  } catch (error) {
+    console.error("Error resending validation code:", error);
+    res.status(500).json("Validation code was not successfully updated!");
+  }
+});
+
+router.post("/login", async (req, res) => {});
+router.post("/logout", async (req, res) => {});
 
 router.post("/forgotPassword", async (req, res, next) => {});
 

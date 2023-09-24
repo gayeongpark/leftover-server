@@ -23,13 +23,16 @@ const authSchema = new Schema({
     required: true,
   },
   emailToken: {
-    type: String,
+    type: Number,
   },
   isVerified: {
     type: Boolean,
   },
   isActive: {
     type: Boolean,
+  },
+  resetPasswordEmailToken: {
+    type: Number,
   }
 });
 

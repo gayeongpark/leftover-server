@@ -165,6 +165,7 @@ router.post("/resendValidationCode/:email", async (req, res) => {
         pass: process.env.NODEMAILER_PASS,
       },
     });
+
     try {
       await transporter.sendMail({
         from: `"Leftovers Team" <${process.env.NODEMAILER_ID}>`,
@@ -188,8 +189,111 @@ router.post("/resendValidationCode/:email", async (req, res) => {
 router.post("/login", async (req, res) => {});
 router.post("/logout", async (req, res) => {});
 
-router.post("/forgotPassword", async (req, res, next) => {});
+router.post("/forgotPassword", async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await Auth.findOne({ email });
+    // console.log("forgotpassword:", user);
+    if (!user) {
+      return res.status(400).json("You are not the joined member!");
+    }
 
-router.post("/resetPassword", async (req, res, next) => {});
+    function generateRandom4DigitNumber() {
+      // Generate a random 4-digit number
+      const randomBytes = crypto.randomBytes(2); // 2 bytes = 16 bits
+      const randomNumber = randomBytes.readUInt16BE(0); // Read 16 bits as an unsigned integer
+      const fourDigitNumber = (randomNumber % 9000) + 1000; // Ensure it's 4 digits
+      return fourDigitNumber;
+    }
+
+    // Generate an email token for email verification
+    const token = generateRandom4DigitNumber();
+    // console.log(token); // Implement your code generation logic
+
+    user.resetPasswordEmailToken = token;
+    await user.save();
+
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.NODEMAILER_ID,
+        pass: process.env.NODEMAILER_PASS,
+      },
+    });
+
+    await transporter.sendMail({
+      from: `"Leftovers Team" <${process.env.NODEMAILER_ID}>`,
+      to: user.email,
+      subject: "Important: Reset your password to use leftovers app",
+      html: `<h3>Hello ${user.firstname}!</h3> <div>Thank you for reaching us! Leftovers received a request to reset password for you.</div> <div>Before we proceed, we need you to verify the email address you provided.</div> <div>Input your verification code on this app.</div> <div> Verfication code: ${user.resetPasswordEmailToken}</div> <div>Thank you,</div> <div>Leftovers team</div>`,
+    });
+    res
+      .status(200)
+      .json(
+        "Please check your email! and then input the verification code to reset your password now!"
+      );
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get("/verifyEmailToResetPassword/:token", async (req, res) => {
+  try {
+    const { token } = req.params; // Rename the token variable for clarity
+
+    // Find the user by resetPasswordEmailToken
+    const user = await Auth.findOne({
+      resetPasswordEmailToken: token, // Match by resetPasswordEmailToken field
+    });
+
+    if (user) {
+      // User found and updated successfully
+      res.status(200).json("Your email is verified to reset the password!");
+    } else {
+      // User not found with the provided token
+      res.status(404).json("User not found!");
+    }
+  } catch (error) {
+    // Handle any errors that occur during the process
+    res.status(500).json("Verification was not updated successfully!");
+  }
+});
+
+router.post("/resetPassword/:token", async (req, res, next) => {
+  try {
+    const { password, password2 } = req.body;
+    const { token: resetPasswordEmailToken } = req.params; // Renamed the variable
+    if (resetPasswordEmailToken === null) {
+      // Corrected the condition
+      return res.status(400).json("You have to verify your email address!");
+    }
+    if (password !== password2) {
+      return res.status(400).json("Password does not match");
+    }
+    const user = await Auth.findOne({ resetPasswordEmailToken });
+    // console.log("resetting password", user);
+    if (!user) {
+      return res.status(400).json("We cannot find your account!");
+    }
+
+    const salt = bcrypt.genSaltSync(10);
+    const hash = bcrypt.hashSync(password, salt);
+    // Updated to directly use password2 from req.body
+    const hash2 = bcrypt.hashSync(password2, salt);
+
+    // Update the user's password based on resetPasswordEmailToken
+    await Auth.findOneAndUpdate(
+      { resetPasswordEmailToken },
+      {
+        password: hash,
+        password2: hash2,
+        resetPasswordEmailToken: null,
+      }
+    );
+    res.status(200).json("Password updated successfully!");
+  } catch (error) {
+    next(error);
+  }
+});
 
 module.exports = router;

@@ -259,7 +259,7 @@ router.get("/verifyEmailToResetPassword/:token", async (req, res) => {
   }
 });
 
-router.post("/resetPassword/:token", async (req, res, next) => {
+router.post("/resetPassword/:token", async (req, res) => {
   try {
     const { password, password2 } = req.body;
     const { token: resetPasswordEmailToken } = req.params; // Renamed the variable
@@ -292,7 +292,7 @@ router.post("/resetPassword/:token", async (req, res, next) => {
     );
     res.status(200).json("Password updated successfully!");
   } catch (error) {
-    next(error);
+    res.status(500).json("Verification was not updated successfully!");
   }
 });
 

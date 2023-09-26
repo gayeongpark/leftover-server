@@ -11,7 +11,7 @@ router.post("/signup", async (req, res) => {
   try {
     const { email, password, password2, firstname, lastname } = req.body;
 
-    // Input validation (add your validation rules here)
+
     if (!email || !password || !password2 || !firstname || !lastname) {
       return res.status(400).json({ error: "All fields are required." });
     }
@@ -20,14 +20,14 @@ router.post("/signup", async (req, res) => {
       return res.status(400).json({ error: "Passwords do not match." });
     }
 
-    // Check if the user already exists
+
     const existingUser = await Auth.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ error: "User already registered." });
     }
 
     // Hash the password
-    const salt = bcrypt.genSaltSync(10); // 10 times of intensive the password hashing process
+    const salt = bcrypt.genSaltSync(10); 
     const hash = bcrypt.hashSync(password, salt);
     const hash2 = bcrypt.hashSync(password2, salt);
 
@@ -43,7 +43,6 @@ router.post("/signup", async (req, res) => {
     const token = generateRandom4DigitNumber();
     // console.log(token);
 
-    // Create a new user
     const newAuth = new Auth({
       firstname,
       lastname,
@@ -55,9 +54,6 @@ router.post("/signup", async (req, res) => {
       isActive: false,
     });
 
-    // await newAuth.save();
-
-    // Attempt to send the verification email
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
@@ -66,7 +62,6 @@ router.post("/signup", async (req, res) => {
       },
     });
 
-    // const url = `http://localhost:8000/auth/signup/${token}`;
     try {
       await transporter.sendMail({
         from: `"Leftovers Team" <${process.env.NODEMAILER_ID}>`,
@@ -75,15 +70,12 @@ router.post("/signup", async (req, res) => {
         html: `<h3>Hello ${firstname}!</h3> <div>Thank you for join us! Leftovers received a request to create an account for you.</div> <div>Before we proceed, we need you to verify the email address you provided.</div> <div>Input your verification code on this app.</div> <div> Verfication code: ${token}</div> <div>Thank you,</div> <div>Leftovers team</div>`,
       });
     } catch (error) {
-      // If sending the email fails, remove the user data and return an error response
       await newAuth.deleteOne();
       return res
         .status(500)
         .json("Failed to send email verification. Please try again later.");
     }
 
-    // If everything is successful, save the user data and send a success response.
-    // In order to input the numbers from the client side, I use four digit numbers using crypto
     await newAuth.save();
     // console.log(newAuth);
 
@@ -98,12 +90,10 @@ router.post("/signup", async (req, res) => {
   }
 });
 
-// I chnaged from URL to enter emailToken because there is no URL on react native app.
 router.get("/verifyEmail/:token", async (req, res) => {
   try {
     const emailToken = req.params.token;
 
-    // Find the user by emailToken and update the fields
     const user = await Auth.findOneAndUpdate(
       { emailToken: emailToken },
       { isVerified: true, isActive: true, emailToken: null },
@@ -111,24 +101,19 @@ router.get("/verifyEmail/:token", async (req, res) => {
     );
 
     if (user) {
-      // User found and updated successfully
       res.status(200).json("Your email is verified!");
     } else {
-      // User not found with the provided token
       res.status(404).json("User not found!");
     }
   } catch (error) {
-    // Handle any errors that occur during the process
     res.status(500).json("Verfication was not updated successfully!");
   }
 });
 
 router.post("/resendValidationCode/:email", async (req, res) => {
   try {
-    const { email } = req.params; // Get the email from route params
+    const { email } = req.params;
     console.log({ email });
-    // Find the user by email
-    // console.log("Before findOne:", email);
     const user = await Auth.findOne({ email });
     // console.log("After findOne:", user);
     console.log(user);
@@ -137,23 +122,16 @@ router.post("/resendValidationCode/:email", async (req, res) => {
       return res.status(404).json("User not found");
     }
 
-    // Generate a new validation code
     function generateRandom4DigitNumber() {
-      // Generate a random 4-digit number
-      const randomBytes = crypto.randomBytes(2); // 2 bytes = 16 bits
-      const randomNumber = randomBytes.readUInt16BE(0); // Read 16 bits as an unsigned integer
-      const fourDigitNumber = (randomNumber % 9000) + 1000; // Ensure it's 4 digits
+      const randomBytes = crypto.randomBytes(2);
+      const randomNumber = randomBytes.readUInt16BE(0);
+      const fourDigitNumber = (randomNumber % 9000) + 1000; 
       return fourDigitNumber;
     }
 
-    // Generate an email token for email verification
     const token = generateRandom4DigitNumber();
     // console.log(token); // Implement your code generation logic
 
-    // Send the new validation code to the user's email (you'll need to implement this part)
-    // You can use Nodemailer or an email service API like SendGrid or Mailgun to send emails.
-
-    // Update the user's data in the database
     user.emailToken = token;
     // user.isVerified = false; // Set isVerified to false since you're resending the code
     await user.save();
@@ -174,7 +152,6 @@ router.post("/resendValidationCode/:email", async (req, res) => {
         html: `<h3>Hello ${user.firstname}!</h3> <div>Thank you for join us! Leftovers received a request to create an account for you.</div> <div>Before we proceed, we need you to verify the email address you provided.</div> <div>Input your verification code on this app.</div> <div> Verfication code: ${user.emailToken}</div> <div>Thank you,</div> <div>Leftovers team</div>`,
       });
     } catch (error) {
-      // If sending the email fails, remove the user data and return an error response
       return res
         .status(500)
         .json("Failed to send email verification. Please try again later.");
@@ -199,16 +176,14 @@ router.post("/forgotPassword", async (req, res) => {
     }
 
     function generateRandom4DigitNumber() {
-      // Generate a random 4-digit number
-      const randomBytes = crypto.randomBytes(2); // 2 bytes = 16 bits
-      const randomNumber = randomBytes.readUInt16BE(0); // Read 16 bits as an unsigned integer
-      const fourDigitNumber = (randomNumber % 9000) + 1000; // Ensure it's 4 digits
+      const randomBytes = crypto.randomBytes(2);
+      const randomNumber = randomBytes.readUInt16BE(0);
+      const fourDigitNumber = (randomNumber % 9000) + 1000;
       return fourDigitNumber;
     }
 
-    // Generate an email token for email verification
     const token = generateRandom4DigitNumber();
-    // console.log(token); // Implement your code generation logic
+    // console.log(token);
 
     user.resetPasswordEmailToken = token;
     await user.save();
@@ -239,22 +214,19 @@ router.post("/forgotPassword", async (req, res) => {
 
 router.get("/verifyEmailToResetPassword/:token", async (req, res) => {
   try {
-    const { token } = req.params; // Rename the token variable for clarity
+    const { token } = req.params;
 
-    // Find the user by resetPasswordEmailToken
+    
     const user = await Auth.findOne({
-      resetPasswordEmailToken: token, // Match by resetPasswordEmailToken field
+      resetPasswordEmailToken: token, 
     });
 
     if (user) {
-      // User found and updated successfully
       res.status(200).json("Your email is verified to reset the password!");
     } else {
-      // User not found with the provided token
       res.status(404).json("User not found!");
     }
   } catch (error) {
-    // Handle any errors that occur during the process
     res.status(500).json("Verification was not updated successfully!");
   }
 });
@@ -262,26 +234,22 @@ router.get("/verifyEmailToResetPassword/:token", async (req, res) => {
 router.post("/resetPassword/:token", async (req, res) => {
   try {
     const { password, password2 } = req.body;
-    const { token: resetPasswordEmailToken } = req.params; // Renamed the variable
+    const { token: resetPasswordEmailToken } = req.params;
     if (resetPasswordEmailToken === null) {
-      // Corrected the condition
       return res.status(400).json("You have to verify your email address!");
     }
     if (password !== password2) {
       return res.status(400).json("Password does not match");
     }
     const user = await Auth.findOne({ resetPasswordEmailToken });
-    // console.log("resetting password", user);
     if (!user) {
       return res.status(400).json("We cannot find your account!");
     }
 
     const salt = bcrypt.genSaltSync(10);
     const hash = bcrypt.hashSync(password, salt);
-    // Updated to directly use password2 from req.body
     const hash2 = bcrypt.hashSync(password2, salt);
 
-    // Update the user's password based on resetPasswordEmailToken
     await Auth.findOneAndUpdate(
       { resetPasswordEmailToken },
       {

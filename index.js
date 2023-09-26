@@ -1,4 +1,5 @@
 const express = require("express");
+// const cors = require("cors");
 const app = express();
 app.use(express.json());
 
@@ -21,6 +22,18 @@ mongoose
 const { v4: uuidv4 } = require("uuid");
 
 const PORT = process.env.PORT || 8000;
+
+// const allowedOrigins = ["exp://192.168.0.157:8081", ];
+
+// const corsOptions = {
+//   origin: function (origin, callback) {
+//     if (!origin || allowedOrigins.includes(origin)) {
+//       callback(null, true);
+//     } else {
+//       callback(new Error("Not allowed by CORS"));
+//     }
+//   },
+// };
 
 app.listen(PORT, () => {
   console.log(`Server listening on the port http://localhost:${PORT}`);

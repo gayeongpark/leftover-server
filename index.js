@@ -23,7 +23,7 @@ const { v4: uuidv4 } = require("uuid");
 
 const PORT = process.env.PORT || 8000;
 
-// const allowedOrigins = ["exp://192.168.0.157:8081", ];
+// const allowedOrigins = ["exp://192.168.0.157:8081"];
 
 // const corsOptions = {
 //   origin: function (origin, callback) {

@@ -11,7 +11,6 @@ router.post("/signup", async (req, res) => {
   try {
     const { email, password, password2, firstname, lastname } = req.body;
 
-
     if (!email || !password || !password2 || !firstname || !lastname) {
       return res.status(400).json({ error: "All fields are required." });
     }
@@ -20,14 +19,13 @@ router.post("/signup", async (req, res) => {
       return res.status(400).json({ error: "Passwords do not match." });
     }
 
-
     const existingUser = await Auth.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ error: "User already registered." });
     }
 
     // Hash the password
-    const salt = bcrypt.genSaltSync(10); 
+    const salt = bcrypt.genSaltSync(10);
     const hash = bcrypt.hashSync(password, salt);
     const hash2 = bcrypt.hashSync(password2, salt);
 
@@ -101,7 +99,7 @@ router.get("/verifyEmail/:token", async (req, res) => {
     );
 
     if (user) {
-      res.status(200).json("Your email is verified!");
+      res.status(200).json({ message: "Your email is verified!" });
     } else {
       res.status(404).json("User not found!");
     }
@@ -125,7 +123,7 @@ router.post("/resendValidationCode/:email", async (req, res) => {
     function generateRandom4DigitNumber() {
       const randomBytes = crypto.randomBytes(2);
       const randomNumber = randomBytes.readUInt16BE(0);
-      const fourDigitNumber = (randomNumber % 9000) + 1000; 
+      const fourDigitNumber = (randomNumber % 9000) + 1000;
       return fourDigitNumber;
     }
 
@@ -156,15 +154,71 @@ router.post("/resendValidationCode/:email", async (req, res) => {
         .status(500)
         .json("Failed to send email verification. Please try again later.");
     }
-    res.status(200).json("Validation code resent successfully");
+    res.status(200).json({ message: "Validation code resent successfully" });
   } catch (error) {
     console.error("Error resending validation code:", error);
     res.status(500).json("Validation code was not successfully updated!");
   }
 });
 
-router.post("/login", async (req, res) => {});
-router.post("/logout", async (req, res) => {});
+router.post("/login", async (req, res, next) => {
+  try {
+    const { email, password } = req.body;
+
+    const user = await Auth.findOne({ email });
+
+    if (!user) {
+      return res.status(401).json({ error: "This user was not registered!" });
+    }
+
+    const isPasswordCorrect = await bcrypt.compare(password, user.password);
+
+    if (!isPasswordCorrect) {
+      return res
+        .status(401)
+        .json({ error: "Incorrect password or username, please check it!" });
+    }
+
+    const accessToken = jwt.sign(
+      {
+        id: user._id,
+        email: user.email,
+      },
+      process.env.ACCESS_SECRET,
+      {
+        expiresIn: "30m",
+      }
+    );
+
+    const refreshToken = jwt.sign(
+      {
+        id: user._id,
+        email: user.email,
+      },
+      process.env.REFRESH_SECRET,
+      {
+        expiresIn: "7d",
+      }
+    );
+
+    res.status(200).json({
+      accessToken,
+      refreshToken,
+      userData: {
+        email: user.email,
+        id: user._id,
+        // profilePicture: user.profilePicture,
+      },
+    });
+    console.log("Login succss on server!");
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post("/logout", async (req, res) => {
+  res.status(200).json("Logged out successfully");
+});
 
 router.post("/forgotPassword", async (req, res) => {
   try {
@@ -202,11 +256,10 @@ router.post("/forgotPassword", async (req, res) => {
       subject: "Important: Reset your password to use leftovers app",
       html: `<h3>Hello ${user.firstname}!</h3> <div>Thank you for reaching us! Leftovers received a request to reset password for you.</div> <div>Before we proceed, we need you to verify the email address you provided.</div> <div>Input your verification code on this app.</div> <div> Verfication code: ${user.resetPasswordEmailToken}</div> <div>Thank you,</div> <div>Leftovers team</div>`,
     });
-    res
-      .status(200)
-      .json(
-        "Please check your email! and then input the verification code to reset your password now!"
-      );
+    res.status(200).json({
+      message:
+        "Please check your email! and then input the verification code to reset your password now!",
+    });
   } catch (error) {
     next(error);
   }
@@ -216,13 +269,14 @@ router.get("/verifyEmailToResetPassword/:token", async (req, res) => {
   try {
     const { token } = req.params;
 
-    
     const user = await Auth.findOne({
-      resetPasswordEmailToken: token, 
+      resetPasswordEmailToken: token,
     });
 
     if (user) {
-      res.status(200).json("Your email is verified to reset the password!");
+      res
+        .status(200)
+        .json({ message: "Your email is verified to reset the password!" });
     } else {
       res.status(404).json("User not found!");
     }
@@ -258,7 +312,7 @@ router.post("/resetPassword/:token", async (req, res) => {
         resetPasswordEmailToken: null,
       }
     );
-    res.status(200).json("Password updated successfully!");
+    res.status(200).json({ message: "Password updated successfully!" });
   } catch (error) {
     res.status(500).json("Verification was not updated successfully!");
   }

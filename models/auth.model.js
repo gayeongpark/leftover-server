@@ -33,7 +33,7 @@ const authSchema = new Schema({
   },
   resetPasswordEmailToken: {
     type: Number,
-  }
+  },
 });
 
 const Auth = model("Auth", authSchema);

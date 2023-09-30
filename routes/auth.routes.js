@@ -186,7 +186,7 @@ router.post("/login", async (req, res, next) => {
       },
       process.env.ACCESS_SECRET,
       {
-        expiresIn: "30m",
+        expiresIn: "5m",
       }
     );
 
@@ -197,7 +197,7 @@ router.post("/login", async (req, res, next) => {
       },
       process.env.REFRESH_SECRET,
       {
-        expiresIn: "7d",
+        expiresIn: "10m",
       }
     );
 

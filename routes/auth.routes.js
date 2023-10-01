@@ -175,7 +175,7 @@ router.post("/login", async (req, res, next) => {
 
     if (!isPasswordCorrect) {
       return res
-        .status(401)
+        .status(402)
         .json({ error: "Incorrect password or username, please check it!" });
     }
 
@@ -210,9 +210,10 @@ router.post("/login", async (req, res, next) => {
         // profilePicture: user.profilePicture,
       },
     });
-    console.log("Login succss on server!");
+    // console.log("Login succss on server!");
   } catch (error) {
-    next(error);
+    console.error("Login error:", error);
+    res.status(400).json({ error: "Login failed, try it again!" });
   }
 });
 

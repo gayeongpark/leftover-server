@@ -207,7 +207,8 @@ router.post("/login", async (req, res, next) => {
       userData: {
         email: user.email,
         id: user._id,
-        // profilePicture: user.profilePicture,
+        firstname: user.firstname,
+        lastname: user.lastname,
       },
     });
     // console.log("Login succss on server!");

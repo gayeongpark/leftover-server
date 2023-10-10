@@ -6,6 +6,9 @@ app.use(express.json());
 const dotenv = require("dotenv");
 dotenv.config();
 
+const cookieParser = require('cookie-parser');
+app.use(cookieParser());
+
 const mongoose = require("mongoose");
 const MONGO_URI = process.env.MONGODB;
 mongoose
@@ -23,17 +26,7 @@ const { v4: uuidv4 } = require("uuid");
 
 const PORT = process.env.PORT || 8000;
 
-// const allowedOrigins = ["exp://192.168.0.157:8081"];
 
-// const corsOptions = {
-//   origin: function (origin, callback) {
-//     if (!origin || allowedOrigins.includes(origin)) {
-//       callback(null, true);
-//     } else {
-//       callback(new Error("Not allowed by CORS"));
-//     }
-//   },
-// };
 
 app.listen(PORT, () => {
   console.log(`Server listening on the port http://localhost:${PORT}`);

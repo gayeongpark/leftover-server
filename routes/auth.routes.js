@@ -161,7 +161,7 @@ router.post("/resendValidationCode/:email", async (req, res) => {
   }
 });
 
-router.post("/login", async (req, res, next) => {
+router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -219,7 +219,22 @@ router.post("/login", async (req, res, next) => {
 });
 
 router.post("/logout", async (req, res) => {
-  res.status(200).json("Logged out successfully");
+  try {
+    // In a real-world scenario, you might want to handle token revocation here.
+    // This can include blacklisting tokens or removing them from an active sessions list.
+
+    // For this example, let's assume you have a logoutToken function that manages token revocation.
+    // You might store and manage a list of revoked tokens in a database or memory cache.
+
+    // const tokenToRevoke = req.body.token; // Assuming you receive the token to revoke in the request.
+
+    // Example: await logoutToken(tokenToRevoke);
+
+    res.status(200).json("Logged out successfully");
+  } catch (error) {
+    console.error("Logout error:", error);
+    res.status(500).json({ error: "Logout failed, try it again!" });
+  }
 });
 
 router.post("/forgotPassword", async (req, res) => {

@@ -22,7 +22,7 @@ mongoose
     console.error("Error connecting to mongo: ", err);
   });
 
-const { v4: uuidv4 } = require("uuid");
+// const { v4: uuidv4 } = require("uuid");
 
 const PORT = process.env.PORT || 8000;
 
@@ -34,3 +34,6 @@ app.listen(PORT, () => {
 
 const authRoutes = require("./routes/auth.routes");
 app.use("/auth", authRoutes);
+
+const preferencesRoutes = require("./routes/preferences.routes");
+app.use("/preferences", preferencesRoutes);

@@ -161,6 +161,9 @@ router.post("/resendValidationCode/:email", async (req, res) => {
   }
 });
 
+// "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1MTZhNDIyOWIzNzZmMWYzMjgxOWIwNyIsImlhdCI6MTY5NzY1MjY1NSwiZXhwIjoxNjk3NjUyOTU1fQ.jH8XskPfO8uuvIhYt9NIaD_IcB2e_4kFY5tmnxaleOQ",
+// "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1MTZhNDIyOWIzNzZmMWYzMjgxOWIwNyIsImlhdCI6MTY5NzY1MjY1NSwiZXhwIjoxNjk3NjUzMjU1fQ.glOc9yDxf2Lohg_uwWi-rvUU7KDmk9DuPUvlRdtq3o4",
+
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -182,7 +185,7 @@ router.post("/login", async (req, res) => {
     const accessToken = jwt.sign(
       {
         id: user._id,
-        email: user.email,
+        // email: user.email,
       },
       process.env.ACCESS_SECRET,
       {
@@ -193,7 +196,7 @@ router.post("/login", async (req, res) => {
     const refreshToken = jwt.sign(
       {
         id: user._id,
-        email: user.email,
+        // email: user.email,
       },
       process.env.REFRESH_SECRET,
       {
@@ -218,18 +221,44 @@ router.post("/login", async (req, res) => {
   }
 });
 
+// router.post('/refreshToken', async (req, res) => {
+//   const refreshToken = req.body.refreshToken;
+
+//   if (!refreshToken) {
+//     return res.status(401).json({ error: 'Refresh token is required.' });
+//   }
+
+//   try {
+//     const decoded = jwt.verify(refreshToken, process.env.REFRESH_SECRET);
+
+//     const user = await Auth.findById(decoded.id);
+//     if (!user) {
+//       return res.status(401).json({ error: 'User not found or invalid.' });
+//     }
+
+//     // Create a new access token and return it
+//     const newAccessToken = jwt.sign(
+//       {
+//         id: user._id,
+//         email: user.email,
+//       },
+//       process.env.ACCESS_SECRET,
+//       {
+//         expiresIn: '5m', // Adjust the expiration time as needed
+//       }
+//     );
+
+//     res.json({
+//       accessToken: newAccessToken,
+//     });
+//   } catch (error) {
+//     console.error('Token refresh error:', error);
+//     res.status(401).json({ error: 'Invalid refresh token.' });
+//   }
+// });
+
 router.post("/logout", async (req, res) => {
   try {
-    // In a real-world scenario, you might want to handle token revocation here.
-    // This can include blacklisting tokens or removing them from an active sessions list.
-
-    // For this example, let's assume you have a logoutToken function that manages token revocation.
-    // You might store and manage a list of revoked tokens in a database or memory cache.
-
-    // const tokenToRevoke = req.body.token; // Assuming you receive the token to revoke in the request.
-
-    // Example: await logoutToken(tokenToRevoke);
-
     res.status(200).json("Logged out successfully");
   } catch (error) {
     console.error("Logout error:", error);

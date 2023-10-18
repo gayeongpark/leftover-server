@@ -6,19 +6,21 @@ const preferencesSchema = new Schema(
       type: String,
       required: true,
     },
-
-    allergy: {
-      type: [String],
+    userEmail: {
+      type: String,
       required: true,
-      unique: true,
+    },
+    allergies: {
+      type: [String],
+      // required: true,
     },
     cook: {
       type: [String],
-      required: true,
+      // required: true,
     },
     diet: {
       type: [String],
-      required: true,
+      // required: true,
     },
   },
   { timestamps: true }

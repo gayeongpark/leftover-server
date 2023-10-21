@@ -114,7 +114,7 @@ router.post("/resendValidationCode/:email", async (req, res) => {
     console.log({ email });
     const user = await Auth.findOne({ email });
     // console.log("After findOne:", user);
-    console.log(user);
+    // console.log(user);
 
     if (!user) {
       return res.status(404).json("User not found");

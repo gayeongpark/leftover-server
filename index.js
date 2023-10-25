@@ -1,7 +1,7 @@
 const express = require("express");
 // const cors = require("cors");
 // const bodyParser = require('body-parser');
-// app.use(bodyParser.json()); 
+// app.use(bodyParser.json());
 
 const app = express();
 app.use(express.json());
@@ -9,7 +9,7 @@ app.use(express.json());
 const dotenv = require("dotenv");
 dotenv.config();
 
-const cookieParser = require('cookie-parser');
+const cookieParser = require("cookie-parser");
 app.use(cookieParser());
 
 const mongoose = require("mongoose");
@@ -29,8 +29,6 @@ mongoose
 
 const PORT = process.env.PORT || 8000;
 
-
-
 app.listen(PORT, () => {
   console.log(`Server listening on the port http://localhost:${PORT}`);
 });
@@ -40,3 +38,6 @@ app.use("/auth", authRoutes);
 
 const preferencesRoutes = require("./routes/preferences.routes");
 app.use("/preferences", preferencesRoutes);
+
+const userRoutes = require("./routes/user.routes");
+app.use("/user", userRoutes);

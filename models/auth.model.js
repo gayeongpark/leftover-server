@@ -34,6 +34,9 @@ const authSchema = new Schema({
   resetPasswordEmailToken: {
     type: Number,
   },
+  profileImage: {
+    type: String,
+  },
 });
 
 const Auth = model("Auth", authSchema);
